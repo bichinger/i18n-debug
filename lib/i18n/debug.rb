@@ -9,6 +9,7 @@ module I18n
 
     class << self
       attr_accessor :logger
+      attr_accessor :enabled?
       attr_writer :on_lookup
 
       def logger
@@ -33,7 +34,7 @@ module I18n
           options = args.last.is_a?(Hash) ? args.pop : {}
           separator = options[:separator] || I18n.default_separator
           key = I18n.normalize_keys(*args, separator).join(separator)
-          Debug.on_lookup[key, result]
+          Debug.on_lookup[key, result] if enabled?
         end
       end
     end
