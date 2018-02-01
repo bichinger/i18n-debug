@@ -5,12 +5,16 @@ require 'minitest/autorun'
 class TestI18nDebug < Minitest::Test
   alias_method :silence_io, :capture_io
 
+  DEFAULT_ON_LOOKUP = I18n::Debug.on_lookup
+
   def setup
     I18n.backend.store_translations(:en, foo: { bar: 'baz' })
     # Avoid I18n deprecation warning:
     I18n.enforce_available_locales = true
     # Reset logger to its initial state:
     I18n::Debug.logger = nil
+    I18n::Debug.enabled = true
+    I18n::Debug.on_lookup = DEFAULT_ON_LOOKUP
   end
 
   def test_does_not_alter_default_i18n_behavior
@@ -38,5 +42,17 @@ class TestI18nDebug < Minitest::Test
     assert_equal hook_value, 'baz'
   ensure
     I18n::Debug.on_lookup = default_hook
+  end
+
+  def test_can_be_disabled
+    called = false
+    I18n::Debug.enabled = false
+    I18n::Debug.on_lookup do |key, value|
+      called = true
+    end
+
+    I18n.t('foo.bar')
+
+    assert !called, 'on_lookup does not get called when disabled'
   end
 end
